@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ask Your Sales Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#efeded;--card:#fff;--ink:#2a2224;--mute:#6c6366;--red:#7a1626;--red2:#b04656;--line:#ddd5d6;--grey:#8b8284;--soft:#f6eff0;--c3:#c9c0c1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1617;--card:#271f21;--ink:#f1e9ea;--mute:#a89ea0;--red:#d4586a;--red2:#a63f4e;--line:#41383a;--grey:#9a9193;--soft:#33282a;--c3:#5d5456}}
+:root[data-theme="dark"]{--bg:#1b1617;--card:#271f21;--ink:#f1e9ea;--mute:#a89ea0;--red:#d4586a;--red2:#a63f4e;--line:#41383a;--grey:#9a9193;--soft:#33282a;--c3:#5d5456}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+header{background:var(--red);color:#fff;padding:28px 20px 24px}
+header h1,h2{font-family:"IBM Plex Serif",Georgia,serif;margin:0}
+header h1{font-size:clamp(26px,5vw,38px);max-width:1100px;margin:0 auto}
+header p{max-width:1100px;margin:6px auto 0;opacity:.85}
+main{max-width:1100px;margin:0 auto;padding:20px}
+h2{font-size:22px;margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--red)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.card h3{margin:0 0 10px;font-size:15px;font-weight:600;color:var(--mute)}
+.kpi{grid-column:1/-1;border-left:6px solid var(--red);display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+.kpi h3{margin:0;width:100%}.kpi b{font:600 clamp(40px,8vw,60px)/1 "IBM Plex Serif",Georgia,serif;color:var(--red)}.kpi span{color:var(--mute)}
+.ch{position:relative;height:260px}.wide{grid-column:1/-1}.wide .ch{height:300px}
+.ask{display:flex;gap:8px;flex-wrap:wrap}
+input{flex:1 1 260px;font:inherit;padding:11px 12px;border:1px solid var(--grey);border-radius:6px;background:var(--card);color:var(--ink)}
+button{font:inherit;cursor:pointer;border-radius:6px}
+.go{background:var(--red);color:#fff;border:0;padding:11px 20px;font-weight:600}.go:disabled{opacity:.6}
+.ex{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.ex button{background:var(--soft);color:var(--ink);border:1px solid var(--line);padding:7px 12px}.ex button:hover{border-color:var(--red)}
+:focus-visible{outline:3px solid var(--red2);outline-offset:2px}
+.ans{margin-top:14px}.ans p{margin:0 0 10px;max-width:70ch}.tag{font-size:13px;color:var(--mute)}
+.no{border-left:6px solid var(--grey)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:420px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:500}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--red2);border-radius:4px;min-width:2px}.neg{background:var(--grey)}
+.note{margin-top:14px;font-size:13px;color:var(--mute)}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>Ask Your Sales Data</h1><p>Distributor sales across Southeast Asia, January to June 2026</p></header>
+<main>
+<h2>Dashboard</h2>
+<div class="grid">
+<div class="card kpi"><h3>Total Revenue (SGD)</h3><b id="kpi"></b><span id="kpi2"></span></div>
+<div class="card"><h3>Revenue by country</h3><div class="ch"><canvas id="c1"></canvas></div></div>
+<div class="card"><h3>Revenue by product category</h3><div class="ch"><canvas id="c3"></canvas></div></div>
+<div class="card wide"><h3>Revenue by month</h3><div class="ch"><canvas id="c2"></canvas></div></div>
+<div class="card wide"><h3>Revenue by distributor (all 8)</h3><div class="ch"><canvas id="c4"></canvas></div></div>
+</div>
+<h2>Distributor performance</h2><div class='grid'><div class='card'><h3>Month-over-month revenue growth (%)</h3><div class='ch'><canvas id='c5'></canvas></div></div><div class='card'><h3>Each distributor’s share of total revenue (%)</h3><div class='ch'><canvas id='c6'></canvas></div></div><div class='card'><h3>Top 3 and bottom 3 distributors (red = top, grey = bottom)</h3><div class='ch'><canvas id='c7'></canvas></div></div><div class='card'><h3>Revenue by country and product category</h3><div class='ch'><canvas id='c8'></canvas></div></div></div><h2>Product performance</h2><div class='grid'><div class='card wide'><h3>Top 10 products by revenue</h3><div class='ch'><canvas id='c9'></canvas></div></div><div class='card wide'><h3>Revenue by product category, month by month</h3><div class='ch'><canvas id='c10'></canvas></div></div><div class='card wide'><h3>Units sold and average selling price per product</h3><div class='tw' id='t1'></div><p class='note'>Volume means more units than most products at a lower price. Price means fewer units at a higher price. The comparison is with the middle of all 16 products. Units include one return of -360.</p></div><div class='card wide'><h3>Each product’s share of its own category’s revenue</h3><div class='tw' id='t2'></div></div></div><h2>Ask your data</h2>
+<div class="card">
+<form class="ask" id="f"><input id="q" aria-label="Your question" placeholder="Type a question, for example: Which product earns the most?" maxlength="200"><button class="go" id="go">Ask</button></form>
+<div class="ex" id="ex"></div>
+<div class="ans" id="ans" aria-live="polite"></div>
+<p class="note">Based on fictional data, January to June 2026. Revenue only, no cost or margin data.</p>
+</div>
+</main>
+<script>
+const D="1,7,6,480,8.99;1,7,12,60,3.45;1,4,8,360,3.43;1,2,7,48,5.01;1,1,6,48,9.24;1,3,10,288,3.79;1,4,3,32,18.16;1,0,2,48,2.15;1,6,12,960,3.25;1,3,8,480,3.27;1,4,7,360,4.93;1,6,4,720,6.69;1,6,8,720,3.06;1,3,6,144,8.93;1,0,12,240,3.33;1,3,2,960,2.07;1,3,9,48,6.23;1,4,15,288,2.48;1,4,13,480,9.54;1,1,6,600,8.56;1,7,9,480,6.23;1,5,0,60,4.32;1,6,11,1200,4.01;1,1,0,600,4.13;1,1,8,200,3.49;1,3,6,600,8.53;1,5,0,240,4.28;1,4,0,96,4.21;1,7,5,96,5.77;1,5,2,200,2.26;1,4,3,320,18.25;1,1,10,240,3.94;1,7,13,200,9.69;1,2,7,48,5.09;1,4,7,960,4.78;1,4,6,96,8.61;1,2,8,720,3.34;1,2,14,320,11.77;1,0,7,288,4.91;1,7,1,96,3.05;1,7,9,960,5.98;1,4,4,60,6.94;1,0,1,720,2.97;1,4,0,360,4.11;1,7,10,1200,3.64;2,5,14,400,11.53;2,2,2,60,2.19;2,2,5,60,5.89;2,3,14,24,11.24;2,2,0,288,4.25;2,6,9,360,6.26;2,3,13,288,9.61;2,0,2,600,2.08;2,0,10,144,3.64;2,4,5,480,5.46;2,1,10,960,3.73;2,3,12,600,3.37;2,1,1,48,3.18;2,3,3,160,18.9;2,6,12,120,3.37;2,7,13,960,9.15;2,0,0,1200,3.92;2,6,1,144,3.05;2,0,9,288,6.29;2,5,5,960,5.53;2,1,15,48,2.63;2,3,7,600,4.71;2,2,1,360,3.19;2,3,1,120,3.03;2,5,13,360,10.13;2,0,12,720,3.21;2,4,12,144,3.41;2,5,0,60,4.23;2,1,12,720,3.4;2,3,2,96,2.24;2,5,12,200,3.51;2,7,6,96,8.76;2,4,7,288,5.0;2,6,8,240,3.36;2,4,10,360,3.75;2,2,5,60,5.82;2,4,3,120,18.86;2,2,9,240,6.25;2,4,9,144,6.07;2,6,8,288,3.32;2,6,6,288,8.85;2,0,4,144,6.95;2,5,2,96,2.22;2,6,7,288,3.36;2,4,9,288,6.05;2,3,9,120,6.27;2,4,4,600,6.87;3,4,12,960,3.29;3,1,0,96,4.16;3,2,11,120,4.36;3,6,8,288,3.35;3,4,3,24,17.99;3,4,4,600,6.53;3,7,2,60,2.2;3,0,8,60,3.31;3,4,2,144,2.19;3,1,0,60,4.18;3,0,2,1200,2.01;3,2,15,288,2.66;3,0,1,240,3.05;3,4,12,600,3.27;3,5,10,960,3.56;3,1,10,144,3.87;3,7,11,96,4.46;3,4,4,60,6.85;3,1,13,48,9.73;3,6,4,360,7.03;3,0,15,1200,2.39;3,7,13,48,9.66;3,2,11,120,4.45;3,1,11,200,4.38;3,7,2,600,2.1;3,6,4,720,6.81;3,7,10,600,3.63;3,0,0,1200,3.93;3,4,15,1200,2.46;3,4,3,66,18.16;3,3,2,360,2.23;3,3,6,1200,8.3;3,5,12,120,3.45;3,7,14,24,11.35;3,1,9,240,6.26;3,7,10,48,3.83;3,1,9,120,6.51;3,2,10,60,3.73;3,3,12,720,3.24;3,1,5,240,5.69;3,1,15,96,2.69;3,0,9,60,6.01;3,1,10,240,3.79;3,1,8,480,3.47;3,1,2,1200,2.17;3,4,15,48,2.5;3,3,9,720,5.98;3,4,9,480,6.16;3,6,0,144,4.14;3,7,12,600,3.36;3,4,12,240,3.38;3,4,4,60,6.89;3,3,3,240,18.73;3,0,13,960,9.11;3,1,2,288,2.17;3,6,12,240,3.48;3,4,10,360,3.67;3,5,10,720,3.67;3,2,7,60,5.26;3,4,6,48,8.88;3,0,9,60,6.08;3,0,15,96,2.53;3,3,6,288,8.88;3,0,9,96,6.16;3,5,2,-360,2.16;3,1,3,240,18.55;4,3,7,60,5.14;4,4,3,24,18.26;4,1,10,144,3.76;4,0,4,480,7.11;4,6,13,96,9.62;4,1,0,288,4.34;4,1,1,288,3.04;4,1,1,200,3.19;4,7,10,480,3.86;4,5,13,1200,9.26;4,0,13,120,9.74;4,2,2,1200,2.17;4,2,13,96,10.16;4,0,1,960,2.82;4,6,9,480,6.01;4,4,11,960,4.02;4,2,4,600,6.98;4,4,10,96,3.75;4,6,5,120,5.69;4,4,4,360,6.85;4,0,0,48,4.08;4,5,10,60,3.95;4,1,5,1200,5.6;4,6,9,360,6.18;4,7,6,1200,8.46;4,6,8,200,3.32;4,7,1,240,3.14;4,1,9,600,5.98;4,0,9,960,5.78;4,0,9,144,6.03;4,6,12,960,3.28;4,7,8,720,3.13;4,4,13,120,9.36;4,0,7,200,4.93;4,1,3,32,19.27;4,0,1,600,2.91;4,6,1,48,2.95;4,2,7,288,5.22;4,5,1,720,3.01;4,4,7,720,4.78;4,6,0,360,4.11;4,3,2,288,2.15;4,4,0,960,3.84;4,1,9,144,6.55;5,3,2,48,2.16;5,5,6,720,8.55;5,2,2,144,2.26;5,3,13,144,9.49;5,3,9,200,6.26;5,4,4,720,6.52;5,2,12,200,3.59;5,4,12,96,3.44;5,0,12,960,3.33;5,2,1,240,3.2;5,6,14,80,11.4;5,0,4,960,6.77;5,4,8,600,3.17;5,4,11,200,4.32;5,1,13,1200,9.22;5,1,12,120,3.54;5,2,6,200,8.73;5,4,14,48,11.01;5,7,15,360,2.64;5,5,1,120,3.12;5,2,5,480,5.64;5,5,5,1200,5.33;5,1,13,60,9.7;5,1,11,600,4.25;5,3,6,96,8.83;5,1,1,1200,2.92;5,5,9,480,6.44;5,7,9,1200,5.82;5,7,12,120,3.46;5,3,12,240,3.53;5,6,13,1200,8.95;5,3,4,60,7.32;5,4,12,288,3.44;5,7,2,240,2.2;5,2,12,96,3.61;6,1,15,960,2.5;6,3,2,600,2.04;6,3,6,360,8.72;6,4,9,288,6.04;6,2,13,600,9.19;6,7,13,360,9.89;6,1,10,120,3.84;6,1,11,288,4.48;6,5,14,160,11.52;6,2,10,48,3.74;6,0,7,120,4.98;6,0,4,200,7.09;6,3,1,960,2.92;6,2,10,960,3.58;6,1,6,60,8.95;6,5,3,48,18.81;6,1,12,120,3.61;6,4,15,144,2.51;6,5,5,1200,5.55;6,4,2,288,2.17;6,4,14,400,11.16;6,3,2,960,2.04;6,3,14,48,11.32;6,2,10,60,3.77;6,5,11,600,4.15;6,0,12,360,3.38;6,1,10,480,3.77;6,7,4,120,7.31;6,5,13,120,9.8;6,5,1,960,2.95;6,4,15,144,2.51;6,7,9,144,6.08;6,3,8,288,3.34;6,6,14,320,10.91;6,6,14,240,11.23;6,4,10,360,3.64;6,7,4,144,7.11;6,4,13,1200,9.19;6,6,2,960,2.01;6,4,6,960,8.52;6,6,12,144,3.45;6,3,11,48,4.32;6,2,4,48,7.48;6,2,1,960,2.9;6,7,2,960,2.03;6,5,1,1200,3.06;6,2,0,200,4.3;6,1,10,200,3.91;6,3,11,288,4.48;6,4,1,48,2.96;6,0,12,60,3.51;6,0,13,240,9.32;6,4,11,480,4.36;6,3,14,120,11.54;6,1,4,600,6.9;6,4,8,480,3.36";
+const DIST=[["Jakarta Prima Distribution PT", "Indonesia"], ["Klang Valley Distribution", "Malaysia"], ["Lion City Trading Pte Ltd", "Singapore"], ["Manila Bay Trading Corp", "Philippines"], ["Nusantara Niaga PT", "Indonesia"], ["Penang Consumer Supplies", "Malaysia"], ["Saigon Fresh Distribution JSC", "Vietnam"], ["Siam Retail Partners Co Ltd", "Thailand"]],PROD=[["Aloe Fresh Body Wash 500ml", "Personal Care"], ["Citrus Dishwash Liquid 750ml", "Home Care"], ["Coconut Biscuits 200g", "Food & Beverage"], ["Collagen Drink Box 10s", "Health & Wellness"], ["Electrolyte Sachets 12s", "Health & Wellness"], ["Fabric Softener 1.5L", "Home Care"], ["Gentle Sunscreen SPF50 100ml", "Personal Care"], ["Herbal Shampoo 400ml", "Personal Care"], ["Herbal Throat Lozenges 24s", "Health & Wellness"], ["Instant Kopi Mix 20s", "Food & Beverage"], ["Jasmine Green Tea 25 bags", "Food & Beverage"], ["Lavender Floor Cleaner 1L", "Home Care"], ["Sambal Chilli Sauce 250ml", "Food & Beverage"], ["Ultra Laundry Detergent 2kg", "Home Care"], ["Vitamin C Gummies 60s", "Health & Wellness"], ["Whitening Toothpaste 150g", "Personal Care"]],MON=["January","February","March","April","May","June"];
+const rows=D.split(";").map(s=>{const[a,b,c,d,e]=s.split(",").map(Number);return{m:a,dist:DIST[b][0],country:DIST[b][1],prod:PROD[c][0],cat:PROD[c][1],q:d,rev:Math.round(d*e*100)/100}});
+const sum=a=>Math.round(a.reduce((t,r)=>t+r.rev,0)*100)/100;
+const money=n=>(n<0?"-":"")+"SGD "+Math.abs(n).toLocaleString("en-SG",{minimumFractionDigits:2,maximumFractionDigits:2});
+const DIMS={country:r=>r.country,category:r=>r.cat,product:r=>r.prod,distributor:r=>r.dist,month:r=>MON[r.m-1]};
+const LISTS={country:[...new Set(rows.map(r=>r.country))],category:[...new Set(rows.map(r=>r.cat))],distributor:[...new Set(rows.map(r=>r.dist))],product:[...new Set(rows.map(r=>r.prod))],month:MON};
+function group(rs,dim){const m=new Map();rs.forEach(r=>{const k=DIMS[dim](r);m.set(k,(m.get(k)||0)+r.rev)});return[...m].map(([k,v])=>({k,v:Math.round(v*100)/100}))}
+const total=sum(rows);
+document.getElementById("kpi").textContent=(total/1000).toFixed(2)+"K";
+document.getElementById("kpi2").textContent=money(total)+" from "+rows.length+" orders";
+// ---- charts
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let charts=[];
+const lab={id:"lab",afterDatasetsDraw(c){const x=c.ctx;x.save();x.fillStyle=css("--ink");x.font="12px IBM Plex Sans, sans-serif";const h=c.options.indexAxis==="y";c.getDatasetMeta(0).data.forEach((p,i)=>{const v=c.data.datasets[0].data[i],t=(v/1000).toFixed(1)+"K";if(c.config.type==="doughnut"){return}if(h){x.textAlign="left";x.textBaseline="middle";x.fillText(t,p.x+6,p.y)}else{x.textAlign="center";x.textBaseline="bottom";x.fillText(t,p.x,p.y-8)}});x.restore()}};
+function draw(){
+ charts.forEach(c=>c.destroy());charts=[];
+ const ink=css("--mute"),line=css("--line"),red=css("--red"),pal=[red,css("--red2"),css("--grey"),css("--c3")];
+ Chart.defaults.color=ink;Chart.defaults.font.family="IBM Plex Sans, sans-serif";
+ const tip={callbacks:{label:c=>' '+money(c.chart.options.indexAxis==='y'?c.parsed.x:c.parsed.y)}};
+ const hb=(id,g)=>{g.sort((a,b)=>b.v-a.v);charts.push(new Chart(id,{type:"bar",plugins:[lab],data:{labels:g.map(d=>d.k),datasets:[{data:g.map(d=>d.v),backgroundColor:red,borderRadius:3}]},options:{indexAxis:"y",maintainAspectRatio:false,layout:{padding:{right:46}},plugins:{legend:{display:false},tooltip:tip},scales:{x:{grid:{color:line},ticks:{callback:v=>v/1000+"K"}},y:{grid:{display:false}}}}}))};
+ hb("c1",group(rows,"country"));hb("c4",group(rows,"distributor"));
+ const mo=MON.map((_,i)=>sum(rows.filter(r=>r.m===i+1)));
+ charts.push(new Chart("c2",{type:"line",plugins:[lab],data:{labels:MON,datasets:[{data:mo,borderColor:red,backgroundColor:red,tension:0,pointRadius:5,borderWidth:3}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tip},scales:{y:{min:0,grid:{color:line},ticks:{callback:v=>v/1000+"K"}},x:{grid:{display:false}}}}}));
+ const cg=group(rows,"category").sort((a,b)=>b.v-a.v);
+ charts.push(new Chart("c3",{type:"doughnut",data:{labels:cg.map(d=>d.k),datasets:[{data:cg.map(d=>d.v),backgroundColor:pal,borderColor:css("--card"),borderWidth:2}]},options:{maintainAspectRatio:false,cutout:"58%",plugins:{legend:{position:"right"},tooltip:{callbacks:{label:c=>" "+c.label+": "+money(c.parsed)+" ("+(c.parsed/total*100).toFixed(1)+"%)"}}}}}))}
+const lab2={id:'lab2',afterDatasetsDraw(c,_,o){if(!o||!o.f)return;const x=c.ctx;x.save();x.fillStyle=css('--ink');x.font='12px IBM Plex Sans, sans-serif';const h=c.options.indexAxis==='y';c.getDatasetMeta(0).data.forEach((p,i)=>{const v=c.data.datasets[0].data[i];if(v==null)return;const t=o.f(v);if(h){x.textAlign='left';x.textBaseline='middle';x.fillText(t,p.x+6,p.y)}else{x.textAlign='center';x.textBaseline=v<0?'top':'bottom';x.fillText(t,p.x,p.y+(v<0?8:-8))}});x.restore()}};
+function draw2(){const line=css('--line'),red=css('--red'),gry=css('--grey'),pal=[red,css('--red2'),gry,css('--c3')];const pc=v=>v.toFixed(1)+'%',kk=v=>(v/1000).toFixed(1)+'K';const val=c=>c.chart.options.indexAxis==='y'?c.parsed.x:c.parsed.y;const tipP={callbacks:{label:c=>' '+pc(val(c))}},tipM={callbacks:{label:c=>' '+(c.dataset.label?c.dataset.label+': ':'')+money(val(c))}};const mk=(id,type,labels,sets,o)=>charts.push(new Chart(id,{type:type,plugins:[lab2],data:{labels:labels,datasets:sets},options:Object.assign({maintainAspectRatio:false},o)}));const hb2=(f,tip,fmt)=>({indexAxis:'y',layout:{padding:{right:46}},plugins:{legend:{display:false},tooltip:tip,lab2:{f:f}},scales:{x:{grid:{color:line},ticks:{callback:fmt}},y:{grid:{display:false}}}});const K=v=>v/1000+'K';
+const mo=MON.map((_,i)=>sum(rows.filter(r=>r.m===i+1))),gr=mo.map((v,i)=>i?(v-mo[i-1])/mo[i-1]*100:null);
+mk('c5','bar',MON,[{data:gr,backgroundColor:gr.map(g=>g<0?gry:red),borderRadius:3}],{layout:{padding:{top:18,bottom:14}},plugins:{legend:{display:false},tooltip:tipP,lab2:{f:pc}},scales:{y:{grid:{color:line},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}});
+const dg=group(rows,'distributor').sort((a,b)=>b.v-a.v);
+mk('c6','bar',dg.map(d=>d.k),[{data:dg.map(d=>d.v/total*100),backgroundColor:red,borderRadius:3}],hb2(pc,tipP,v=>v+'%'));
+const tb=[...dg.slice(0,3),...dg.slice(-3)];
+mk('c7','bar',tb.map(d=>d.k),[{data:tb.map(d=>d.v),backgroundColor:tb.map((_,i)=>i<3?red:gry),borderRadius:3}],hb2(kk,tipM,K));
+const cg=group(rows,'category').sort((a,b)=>b.v-a.v).map(d=>d.k),co=group(rows,'country').sort((a,b)=>b.v-a.v).map(d=>d.k);
+mk('c8','bar',co,cg.map((c,i)=>({label:c,data:co.map(k=>sum(rows.filter(r=>r.cat===c&&r.country===k))),backgroundColor:pal[i]})),{indexAxis:'y',plugins:{legend:{position:'top'},tooltip:tipM},scales:{x:{stacked:true,grid:{color:line},ticks:{callback:K}},y:{stacked:true,grid:{display:false}}}});
+const pg=group(rows,'product').sort((a,b)=>b.v-a.v).slice(0,10);
+mk('c9','bar',pg.map(d=>d.k),[{data:pg.map(d=>d.v),backgroundColor:red,borderRadius:3}],hb2(kk,tipM,K));
+mk('c10','line',MON,cg.map((c,i)=>({label:c,data:MON.map((_,j)=>sum(rows.filter(r=>r.cat===c&&r.m===j+1))),borderColor:pal[i],backgroundColor:pal[i],tension:0,pointRadius:4,borderWidth:3})),{plugins:{legend:{position:'top'},tooltip:tipM},scales:{y:{min:0,grid:{color:line},ticks:{callback:K}},x:{grid:{display:false}}}})}
+const drawAll=()=>{draw();draw2()};drawAll();matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawAll);
+const num=(n,d=0)=>n.toLocaleString('en-SG',{minimumFractionDigits:d,maximumFractionDigits:d}),bar=(v,m)=>`<div class='bar' style='width:${Math.max(2,v/m*100)}%'></div>`;
+function tables(){const P=group(rows,'product').map(d=>{const rs=rows.filter(r=>r.prod===d.k),u=rs.reduce((t,r)=>t+r.q,0);return{k:d.k,rev:d.v,u:u,a:d.v/u,c:rs[0].cat}});const med=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2};const mu=med(P.map(p=>p.u)),ma=med(P.map(p=>p.a)),xu=Math.max(...P.map(p=>p.u)),xa=Math.max(...P.map(p=>p.a));P.sort((x,y)=>y.rev-x.rev);
+$('t1').innerHTML=`<table><tr><th>Product</th><th class='n'>Units sold</th><th style='width:14%'></th><th class='n'>Avg price (SGD)</th><th style='width:14%'></th><th class='n'>Revenue (SGD)</th><th>Earns mostly by</th></tr>`+P.map(p=>`<tr><td>${esc(p.k)}</td><td class='n'>${num(p.u)}</td><td>${bar(p.u,xu)}</td><td class='n'>${p.a.toFixed(2)}</td><td>${bar(p.a,xa)}</td><td class='n'>${num(p.rev)}</td><td>${p.u>=mu&&p.a<ma?'Volume':p.a>=ma&&p.u<mu?'Price':p.u>=mu?'Volume and price':'Neither (small seller)'}</td></tr>`).join('')+`</table>`;
+const C=group(rows,'category').sort((a,b)=>b.v-a.v);$('t2').innerHTML=`<table><tr><th>Category / product</th><th class='n'>Revenue (SGD)</th><th class='n'>Share of category</th><th style='width:25%'></th></tr>`+C.map(c=>`<tr style='background:var(--soft)'><td><b>${esc(c.k)}</b></td><td class='n'><b>${num(c.v)}</b></td><td class='n'><b>100.0%</b></td><td></td></tr>`+P.filter(p=>p.c===c.k).map(p=>`<tr><td>&nbsp;&nbsp;${esc(p.k)}</td><td class='n'>${num(p.rev)}</td><td class='n'>${(p.rev/c.v*100).toFixed(1)}%</td><td>${bar(p.rev,c.v)}</td></tr>`).join('')).join('')+`</table>`}
+// ---- ask: code does ALL maths
+function run(q){
+ const f=q.filters||{};
+ const rs=rows.filter(r=>(!f.country||r.country===f.country)&&(!f.category||r.cat===f.category)&&(!f.distributor||r.dist===f.distributor)&&(!f.month||MON[r.m-1]===f.month));
+ const scope=Object.values(f).length?" ("+Object.values(f).join(", ")+")":"";
+ const tot=sum(rs);
+ if(!rs.length)return null;
+ if(q.intent==="total")return{title:"Total revenue"+scope,col:"Share of all sales",items:[{k:"Total",v:tot,p:tot/total*100}]};
+ if(q.intent==="growth"){const mo=MON.map((n,i)=>({k:n,v:sum(rs.filter(r=>r.m===i+1))}));
+  return{title:"Month-over-month revenue change"+scope,col:"Change vs previous month",items:mo.map((d,i)=>({k:d.k,v:d.v,p:i&&mo[i-1].v?(d.v-mo[i-1].v)/mo[i-1].v*100:null,chg:1}))}}
+ let g=group(rs,q.dim);
+ if(q.dim==="month")g.sort((a,b)=>MON.indexOf(a.k)-MON.indexOf(b.k));else g.sort((a,b)=>q.order==="bottom"?a.v-b.v:b.v-a.v);
+ if(q.n)g=g.slice(0,q.n);
+ return{title:(q.order==="bottom"?"Lowest ":"Highest ")+(q.n?q.n+" ":"")+"by "+q.dim+scope,col:"Share of total",items:g.map(d=>({k:d.k,v:d.v,p:d.v/tot*100}))}}
+function offline(t){t=t.toLowerCase();
+ if(/profit|margin|cost|forecast|rep\b|reps|salesperson|customer|target/.test(t))return{intent:"unanswerable",reason:"That needs data this file does not contain."};
+ const filters={};MON.forEach(m=>{if(t.includes(m.toLowerCase()))filters.month=m});
+ if(/growth|change|month by month|month-over-month|trend/.test(t))return{intent:"growth",filters};
+ const dim=/country|countries|market/.test(t)?"country":/categor/.test(t)?"category":/distribut/.test(t)?"distributor":/month/.test(t)?"month":"product";
+ const n=(t.match(/\b(\d+)\b/)||[])[1];
+ return{intent:"ranking",dim,order:/bottom|least|lowest|worst/.test(t)?"bottom":"top",n:n?+n:null,filters}}
+async function parse(text,sample){
+ if(!sample)return offline(text);
+ const p=`Turn the manager question into JSON only (no other text).
+Intents: {"intent":"total","filters":{}} | {"intent":"growth","filters":{}} (month-over-month change) | {"intent":"ranking","dim":"country|category|product|distributor|month","order":"top|bottom","n":number or null,"filters":{}} | {"intent":"unanswerable","reason":"short reason"}.
+Filter keys and the ONLY allowed values: ${JSON.stringify({country:LISTS.country,category:LISTS.category,distributor:LISTS.distributor,month:MON})}.
+Known products: ${JSON.stringify(LISTS.product)}.
+The data only has revenue by month, country, category, product and distributor. Anything else (profit, cost, margin, forecasts, sales reps, customers, exact dates, other years) is unanswerable.
+Question: ${text}`;
+ try{return await sample.json(p,{cache:false})}catch(e){return offline(text)}}
+function valid(q){if(!q||typeof q!=="object")return false;
+ if(q.intent==="unanswerable")return true;
+ if(!["total","growth","ranking"].includes(q.intent))return false;
+ if(q.intent==="ranking"&&!DIMS[q.dim])return false;
+ if(q.n!=null&&!(Number.isInteger(q.n)&&q.n>0&&q.n<=20))q.n=null;
+ const f=q.filters||{};q.filters=f;
+ for(const k in f){if(!f[k]){delete f[k];continue}if(!LISTS[k]||!LISTS[k].includes(f[k]))return false}return true}
+function summary(r){const a=r.items,x=a[0];
+ if(a[0].chg){const v=a.filter(d=>d.p!=null),u=v.reduce((m,d)=>d.p>m.p?d:m),w=v.reduce((m,d)=>d.p<m.p?d:m);return`Revenue rose most in ${u.k} (${u.p.toFixed(1)}%) and fell most in ${w.k} (${w.p.toFixed(1)}%).`}
+ if(a.length===1)return`${x.k} revenue is ${money(x.v)}.`;
+ return`${x.k} comes first with ${money(x.v)} (${x.p.toFixed(1)}% of the total).`}
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function show(r,text,src){
+ const mx=Math.max(...r.items.map(d=>Math.abs(d.v)));
+ $("ans").innerHTML=`<div class="card"><h3>${esc(r.title)}</h3><p>${esc(text)}</p><p class="tag">${src}</p><div class="tw"><table><tr><th>Item</th><th class="n">Revenue (SGD)</th><th class="n">${r.col}</th><th style="width:22%"></th></tr>${r.items.map(d=>`<tr><td>${esc(d.k)}</td><td class="n">${d.v.toLocaleString("en-SG",{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="n">${d.p==null?"–":(d.chg&&d.p>0?"+":"")+d.p.toFixed(1)+"%"}</td><td><div class="bar ${d.v<0?"neg":""}" style="width:${Math.max(2,Math.abs(d.v)/mx*100)}%"></div></td></tr>`).join("")}</table></div></div>`}
+function none(msg){$("ans").innerHTML=`<div class="card no"><h3>Can’t answer that from this data</h3><p>${esc(msg)}</p><p class="tag">This app has revenue by month, country, product category, product and distributor. It has no cost, profit, margin or forecast data.</p></div>`}
+let busy=false;
+async function ask(text){
+ text=text.trim();if(!text||busy)return;busy=true;$("go").disabled=true;$("q").value=text;
+ $("ans").innerHTML=`<p class="tag">Working on it…</p>`;
+ let sample=null;try{sample=await claude.use("sample")}catch(e){}
+ const q=await parse(text,sample);
+ if(!valid(q)){none("I couldn’t match that question to the data. Try naming a month, country, category, product or distributor.")}
+ else if(q.intent==="unanswerable"){none(q.reason||"That information is not in the data.")}
+ else{const r=run(q);
+  if(!r)none("No sales match that filter.");
+  else{let t=summary(r),src="Summary built by the app. Numbers are calculated from the data.";show(r,t,src);
+   if(sample){try{const o=await sample(`Explain this result for a regional sales manager in 2 or 3 plain sentences. Use ONLY numbers that appear in the data below. Do not calculate, estimate or add any new number. No profit or cost talk.
+Question: ${text}
+Result (already calculated, revenue in SGD): ${JSON.stringify(r.items.map(d=>({name:d.k,revenue:d.v,percent:d.p==null?null:Math.round(d.p*10)/10})))}`,{cache:false});
+    if(o&&o.text)show(r,o.text.trim(),"Explained by Claude. Numbers are calculated by the app, not by Claude.")}catch(e){}}}}
+ busy=false;$("go").disabled=false}
+["Which 3 products earn the most revenue?","How did revenue change month by month?","What share of revenue does each product category make?","Which 3 distributors earn the least?"].forEach(t=>{const b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=()=>ask(t);$("ex").appendChild(b)});
+$("f").addEventListener("submit",e=>{e.preventDefault();ask($("q").value)});tables();
+</script></body></html>
